@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { useAccount, useWriteContract, useWaitForTransactionReceipt } from "wagmi";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -32,6 +33,13 @@ interface Submission {
   };
 }
 
+interface PlatformConnection {
+  id: string;
+  platform: string;
+  platformUserId: string;
+  createdAt: string;
+}
+
 const statusColors: Record<string, string> = {
   pending: "bg-yellow-500/20 text-yellow-400",
   verifying: "bg-blue-500/20 text-blue-400",
@@ -41,9 +49,23 @@ const statusColors: Record<string, string> = {
 };
 
 export default function DashboardPage() {
+  return (
+    <Suspense fallback={<div className="py-20 text-center text-zinc-400">Loading...</div>}>
+      <DashboardContent />
+    </Suspense>
+  );
+}
+
+function DashboardContent() {
   const { address, isConnected } = useAccount();
+  const searchParams = useSearchParams();
   const [submissions, setSubmissions] = useState<Submission[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // Connected platforms
+  const [platforms, setPlatforms] = useState<PlatformConnection[]>([]);
+  const [platformsLoading, setPlatformsLoading] = useState(true);
+  const [oauthMsg, setOauthMsg] = useState("");
 
   // Submit video form
   const [campaignId, setCampaignId] = useState("");
@@ -57,6 +79,18 @@ export default function DashboardPage() {
   const { writeContract, data: txHash, error: txError } = useWriteContract();
   const { isSuccess: txConfirmed } = useWaitForTransactionReceipt({ hash: txHash });
 
+  // Handle OAuth callback query params
+  useEffect(() => {
+    const oauth = searchParams.get("oauth");
+    const oauthPlatform = searchParams.get("platform");
+    if (oauth === "success" && oauthPlatform) {
+      setOauthMsg(`${oauthPlatform} connected successfully!`);
+    } else if (oauth === "error") {
+      const reason = searchParams.get("reason") || "unknown";
+      setOauthMsg(`OAuth failed: ${reason}${oauthPlatform ? ` (${oauthPlatform})` : ""}`);
+    }
+  }, [searchParams]);
+
   useEffect(() => {
     if (!isConnected) return;
     api
@@ -64,6 +98,11 @@ export default function DashboardPage() {
       .then(setSubmissions)
       .catch(() => {})
       .finally(() => setLoading(false));
+    api
+      .getPlatforms()
+      .then(setPlatforms)
+      .catch(() => {})
+      .finally(() => setPlatformsLoading(false));
   }, [isConnected]);
 
   // After on-chain TX confirms
@@ -140,6 +179,84 @@ export default function DashboardPage() {
           {address?.slice(0, 6)}...{address?.slice(-4)}
         </p>
       </div>
+
+      {/* Connected Platforms */}
+      <Card className="border-zinc-800 bg-zinc-900/50">
+        <CardHeader>
+          <CardTitle>Connected Platforms</CardTitle>
+          <CardDescription className="text-zinc-500">
+            Connect your YouTube or TikTok account so CRE can verify your video
+            metrics.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {oauthMsg && (
+            <p
+              className={`mb-4 text-sm ${
+                oauthMsg.includes("success")
+                  ? "text-green-400"
+                  : "text-red-400"
+              }`}
+            >
+              {oauthMsg}
+            </p>
+          )}
+
+          {platformsLoading ? (
+            <p className="text-zinc-400">Loading...</p>
+          ) : (
+            <div className="space-y-3">
+              {(["youtube", "tiktok"] as const).map((p) => {
+                const conn = platforms.find((c) => c.platform === p);
+                return (
+                  <div
+                    key={p}
+                    className="flex items-center justify-between rounded-lg border border-zinc-800 px-4 py-3"
+                  >
+                    <div>
+                      <span className="font-medium capitalize">{p}</span>
+                      {conn && (
+                        <span className="ml-2 text-sm text-zinc-400">
+                          ({conn.platformUserId})
+                        </span>
+                      )}
+                    </div>
+                    {conn ? (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="border-red-800 text-red-400 hover:bg-red-900/30"
+                        onClick={async () => {
+                          await api.disconnectPlatform(conn.id);
+                          setPlatforms((prev) =>
+                            prev.filter((c) => c.id !== conn.id)
+                          );
+                        }}
+                      >
+                        Disconnect
+                      </Button>
+                    ) : (
+                      <Button
+                        size="sm"
+                        onClick={async () => {
+                          try {
+                            const { url } = await api.getOAuthUrl(p);
+                            window.location.href = url;
+                          } catch (e: any) {
+                            setOauthMsg(e.message);
+                          }
+                        }}
+                      >
+                        Connect {p === "youtube" ? "YouTube" : "TikTok"}
+                      </Button>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       {/* Submit Video */}
       <Card className="border-zinc-800 bg-zinc-900/50">

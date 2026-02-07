@@ -38,4 +38,9 @@ export const api = {
 
   // Platforms
   getPlatforms: () => fetcher("/platforms"),
+  disconnectPlatform: (id: string) =>
+    fetcher(`/platforms/${id}`, { method: "DELETE" }),
+
+  // OAuth
+  getOAuthUrl: (platform: string) => fetcher(`/oauth/${platform}/url`),
 };

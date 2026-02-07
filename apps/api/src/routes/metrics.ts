@@ -3,6 +3,7 @@ import { requireCREToken } from "../middleware/auth";
 import { prisma } from "../lib/prisma";
 import { fetchYouTubeMetrics } from "../connectors/youtube";
 import { fetchTikTokMetrics } from "../connectors/tiktok";
+import { getValidAccessToken } from "../services/tokenRefresh";
 
 export const metricsRouter = Router();
 
@@ -53,13 +54,15 @@ metricsRouter.get("/:platform/:videoId", requireCREToken, async (req: Request<{ 
       return;
     }
 
+    const accessToken = await getValidAccessToken(connection);
+
     let metrics;
     switch (platform) {
       case "youtube":
-        metrics = await fetchYouTubeMetrics(videoId, connection.accessToken);
+        metrics = await fetchYouTubeMetrics(videoId, accessToken);
         break;
       case "tiktok":
-        metrics = await fetchTikTokMetrics(videoId, connection.accessToken);
+        metrics = await fetchTikTokMetrics(videoId, accessToken);
         break;
       default:
         res.status(400).json({ error: `Unsupported platform: ${platform}` });
