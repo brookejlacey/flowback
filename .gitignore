@@ -1,0 +1,38 @@
+# Dependencies
+node_modules/
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Foundry
+cre/contracts/out/
+cre/contracts/cache/
+
+# CRE
+cre/verify-engagement/dist/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Next.js
+apps/web/.next/
+
+# Foundry broadcast (contains private keys in cache)
+cre/contracts/broadcast/
+
+# Build
+dist/
+build/
+*.tsbuildinfo
+
+# Logs
+*.log

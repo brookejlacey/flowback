@@ -1,0 +1,114 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String   @id @default(cuid())
+  walletAddress String   @unique @map("wallet_address")
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  platformConnections PlatformConnection[]
+  submissions         Submission[]
+
+  @@map("users")
+}
+
+enum Platform {
+  youtube
+  tiktok
+  twitter
+}
+
+model PlatformConnection {
+  id             String   @id @default(cuid())
+  userId         String   @map("user_id")
+  platform       Platform
+  platformUserId String   @map("platform_user_id")
+  accessToken    String   @map("access_token")
+  refreshToken   String?  @map("refresh_token")
+  expiresAt      DateTime? @map("expires_at")
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@unique([userId, platform])
+  @@map("platform_connections")
+}
+
+model Campaign {
+  id              String   @id @default(cuid())
+  chainCampaignId Int?     @map("chain_campaign_id")
+  brandWallet     String   @map("brand_wallet")
+  name            String
+  budgetUsdc      BigInt   @map("budget_usdc")
+  payoutPer1kViews BigInt  @map("payout_per_1k_views")
+  minViews        Int      @map("min_views")
+  platformsAllowed Platform[] @map("platforms_allowed")
+  startTime       DateTime @map("start_time")
+  endTime         DateTime @map("end_time")
+  active          Boolean  @default(true)
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  submissions Submission[]
+
+  @@map("campaigns")
+}
+
+enum SubmissionStatus {
+  pending
+  verifying
+  verified
+  paid
+  rejected
+}
+
+model Submission {
+  id         String           @id @default(cuid())
+  campaignId String           @map("campaign_id")
+  creatorId  String           @map("creator_id")
+  platform   Platform
+  videoId    String           @map("video_id")
+  videoUrl   String           @map("video_url")
+  status     SubmissionStatus @default(pending)
+  createdAt  DateTime         @default(now()) @map("created_at")
+
+  campaign      Campaign       @relation(fields: [campaignId], references: [id])
+  creator       User           @relation(fields: [creatorId], references: [id])
+  verification  Verification?
+  metricSnapshots MetricSnapshot[]
+
+  @@unique([campaignId, creatorId, videoId])
+  @@map("submissions")
+}
+
+model Verification {
+  id             String   @id @default(cuid())
+  submissionId   String   @unique @map("submission_id")
+  viewCount      Int      @map("view_count")
+  likeCount      Int      @map("like_count")
+  commentCount   Int      @map("comment_count")
+  engagementRate Float?   @map("engagement_rate")
+  payoutAmount   BigInt   @map("payout_amount")
+  txHash         String?  @map("tx_hash")
+  verifiedAt     DateTime @default(now()) @map("verified_at")
+
+  submission Submission @relation(fields: [submissionId], references: [id])
+
+  @@map("verifications")
+}
+
+model MetricSnapshot {
+  id           String   @id @default(cuid())
+  submissionId String   @map("submission_id")
+  rawResponse  Json     @map("raw_response")
+  fetchedAt    DateTime @default(now()) @map("fetched_at")
+
+  submission Submission @relation(fields: [submissionId], references: [id])
+
+  @@map("metric_snapshots")
+}
