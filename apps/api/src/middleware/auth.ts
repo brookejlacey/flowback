@@ -8,6 +8,7 @@ declare module "express-session" {
       chainId: number;
     };
     nonce: string;
+    oauthState?: string;
   }
 }
 

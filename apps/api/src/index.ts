@@ -7,6 +7,7 @@ import { metricsRouter } from "./routes/metrics";
 import { campaignRouter } from "./routes/campaigns";
 import { submissionRouter } from "./routes/submissions";
 import { platformRouter } from "./routes/platforms";
+import { oauthRouter } from "./routes/oauth";
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -33,6 +34,7 @@ app.use("/api/metrics", metricsRouter);
 app.use("/campaigns", campaignRouter);
 app.use("/submissions", submissionRouter);
 app.use("/platforms", platformRouter);
+app.use("/oauth", oauthRouter);
 
 // Health check
 app.get("/health", (_req, res) => {
