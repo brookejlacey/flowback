@@ -1,0 +1,6 @@
+name: flowback-cre
+version: "1.0.0"
+description: FlowBack CRE project — trustless creator payment verification
+
+workflows:
+  - path: verify-engagement

@@ -1,0 +1,10 @@
+{
+  "evms": [
+    {
+      "contractAddress": "0x56A512A9Dfa24F0Bb823a782afe3b658627C6496",
+      "chainSelectorName": "base-testnet-sepolia",
+      "gasLimit": 500000
+    }
+  ],
+  "backendUrl": "https://flowback-api.example.com"
+}

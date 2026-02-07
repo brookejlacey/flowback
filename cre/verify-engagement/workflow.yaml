@@ -1,0 +1,4 @@
+name: verify-engagement
+description: Verifies creator engagement metrics via platform APIs and triggers USDC payouts
+config_path: config.staging.json
+secrets_path: ../../secrets.yaml
