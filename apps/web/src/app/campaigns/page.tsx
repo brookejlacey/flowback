@@ -79,53 +79,52 @@ export default function CampaignsPage() {
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {campaigns.map((campaign) => (
-            <Card
-              key={campaign.id}
-              className="border-zinc-800 bg-zinc-900/50 transition hover:border-zinc-700"
-            >
-              <CardHeader>
-                <CardTitle className="text-lg">{campaign.name}</CardTitle>
-                <CardDescription className="text-zinc-500">
-                  by {campaign.brandWallet.slice(0, 6)}...
-                  {campaign.brandWallet.slice(-4)}
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-zinc-400">Budget</span>
-                    <span className="font-mono">
-                      ${formatUsdc(campaign.budgetUsdc)} USDC
-                    </span>
+            <Link key={campaign.id} href={`/campaigns/${campaign.id}`}>
+              <Card className="border-zinc-800 bg-zinc-900/50 transition hover:border-zinc-700 cursor-pointer h-full">
+                <CardHeader>
+                  <CardTitle className="text-lg">{campaign.name}</CardTitle>
+                  <CardDescription className="text-zinc-500">
+                    by {campaign.brandWallet.slice(0, 6)}...
+                    {campaign.brandWallet.slice(-4)}
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-zinc-400">Budget</span>
+                      <span className="font-mono">
+                        ${formatUsdc(campaign.budgetUsdc)} USDC
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-zinc-400">Payout</span>
+                      <span className="font-mono">
+                        ${formatUsdc(campaign.payoutPer1kViews)}/1k views
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-zinc-400">Min views</span>
+                      <span className="font-mono">
+                        {campaign.minViews.toLocaleString()}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-zinc-400">Ends</span>
+                      <span>
+                        {new Date(campaign.endTime).toLocaleDateString()}
+                      </span>
+                    </div>
+                    <div className="flex gap-1 pt-2">
+                      {campaign.platformsAllowed.map((p) => (
+                        <Badge key={p} variant="secondary">
+                          {p}
+                        </Badge>
+                      ))}
+                    </div>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-zinc-400">Payout</span>
-                    <span className="font-mono">
-                      ${formatUsdc(campaign.payoutPer1kViews)}/1k views
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-zinc-400">Min views</span>
-                    <span className="font-mono">
-                      {campaign.minViews.toLocaleString()}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-zinc-400">Ends</span>
-                    <span>
-                      {new Date(campaign.endTime).toLocaleDateString()}
-                    </span>
-                  </div>
-                  <div className="flex gap-1 pt-2">
-                    {campaign.platformsAllowed.map((p) => (
-                      <Badge key={p} variant="secondary">
-                        {p}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            </Link>
           ))}
         </div>
       )}

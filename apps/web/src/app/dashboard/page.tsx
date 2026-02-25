@@ -89,6 +89,12 @@ function DashboardContent() {
       const reason = searchParams.get("reason") || "unknown";
       setOauthMsg(`OAuth failed: ${reason}${oauthPlatform ? ` (${oauthPlatform})` : ""}`);
     }
+
+    // Auto-fill campaign IDs from query params (from campaign detail page)
+    const qCampaignId = searchParams.get("campaignId");
+    const qChainCampaignId = searchParams.get("chainCampaignId");
+    if (qCampaignId) setCampaignId(qCampaignId);
+    if (qChainCampaignId) setChainCampaignId(qChainCampaignId);
   }, [searchParams]);
 
   useEffect(() => {

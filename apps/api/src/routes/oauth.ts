@@ -10,6 +10,7 @@ import {
   exchangeTikTokCode,
   fetchTikTokOpenId,
 } from "../services/oauth";
+import { encrypt } from "../lib/encryption";
 
 export const oauthRouter = Router();
 
@@ -141,8 +142,8 @@ oauthRouter.get(
           },
         },
         update: {
-          accessToken,
-          refreshToken,
+          accessToken: encrypt(accessToken),
+          refreshToken: refreshToken ? encrypt(refreshToken) : null,
           expiresAt,
           platformUserId,
         },
@@ -150,8 +151,8 @@ oauthRouter.get(
           userId: user.id,
           platform,
           platformUserId,
-          accessToken,
-          refreshToken,
+          accessToken: encrypt(accessToken),
+          refreshToken: refreshToken ? encrypt(refreshToken) : null,
           expiresAt,
         },
       });

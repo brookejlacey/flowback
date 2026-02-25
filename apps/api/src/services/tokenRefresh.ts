@@ -1,6 +1,7 @@
 import { PlatformConnection } from "@prisma/client";
 import { prisma } from "../lib/prisma";
 import { refreshYouTubeToken, refreshTikTokToken } from "./oauth";
+import { decrypt, encrypt } from "../lib/encryption";
 
 const BUFFER_MS = 5 * 60 * 1000; // 5 minute buffer
 
@@ -12,11 +13,13 @@ const BUFFER_MS = 5 * 60 * 1000; // 5 minute buffer
 export async function getValidAccessToken(
   connection: PlatformConnection
 ): Promise<string> {
+  const decryptedAccessToken = decrypt(connection.accessToken);
+
   if (
     !connection.expiresAt ||
     connection.expiresAt.getTime() > Date.now() + BUFFER_MS
   ) {
-    return connection.accessToken;
+    return decryptedAccessToken;
   }
 
   if (!connection.refreshToken) {
@@ -25,6 +28,8 @@ export async function getValidAccessToken(
     );
   }
 
+  const decryptedRefreshToken = decrypt(connection.refreshToken);
+
   console.log(
     `[TokenRefresh] Refreshing ${connection.platform} token for connection ${connection.id}`
   );
@@ -32,10 +37,10 @@ export async function getValidAccessToken(
   let newTokens;
   switch (connection.platform) {
     case "youtube":
-      newTokens = await refreshYouTubeToken(connection.refreshToken);
+      newTokens = await refreshYouTubeToken(decryptedRefreshToken);
       break;
     case "tiktok":
-      newTokens = await refreshTikTokToken(connection.refreshToken);
+      newTokens = await refreshTikTokToken(decryptedRefreshToken);
       break;
     default:
       throw new Error(
@@ -46,8 +51,8 @@ export async function getValidAccessToken(
   await prisma.platformConnection.update({
     where: { id: connection.id },
     data: {
-      accessToken: newTokens.accessToken,
-      refreshToken: newTokens.refreshToken,
+      accessToken: encrypt(newTokens.accessToken),
+      refreshToken: encrypt(newTokens.refreshToken),
       expiresAt: newTokens.expiresAt,
     },
   });

@@ -11,18 +11,27 @@ campaignRouter.get("/", async (_req: Request, res: Response) => {
     orderBy: { createdAt: "desc" },
   });
 
-  res.json(campaigns.map(c => ({
+  res.json(campaigns.map((c: typeof campaigns[number]) => ({
     ...c,
     budgetUsdc: c.budgetUsdc.toString(),
     payoutPer1kViews: c.payoutPer1kViews.toString(),
   })));
 });
 
-/** GET /campaigns/:id — Campaign details with submission count */
+/** GET /campaigns/:id — Campaign details with submissions */
 campaignRouter.get("/:id", async (req: Request<{ id: string }>, res: Response) => {
   const campaign = await prisma.campaign.findUnique({
     where: { id: req.params.id },
-    include: { _count: { select: { submissions: true } } },
+    include: {
+      _count: { select: { submissions: true } },
+      submissions: {
+        include: {
+          creator: { select: { walletAddress: true } },
+          verification: true,
+        },
+        orderBy: { createdAt: "desc" },
+      },
+    },
   });
 
   if (!campaign) {
@@ -34,6 +43,13 @@ campaignRouter.get("/:id", async (req: Request<{ id: string }>, res: Response) =
     ...campaign,
     budgetUsdc: campaign.budgetUsdc.toString(),
     payoutPer1kViews: campaign.payoutPer1kViews.toString(),
+    submissions: campaign.submissions.map((s: typeof campaign.submissions[number]) => ({
+      ...s,
+      verification: s.verification ? {
+        ...s.verification,
+        payoutAmount: s.verification.payoutAmount.toString(),
+      } : null,
+    })),
   });
 });
 

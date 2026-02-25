@@ -49,11 +49,3 @@ platformRouter.delete("/:id", requireAuth, async (req: Request<{ id: string }>, 
   res.json({ ok: true });
 });
 
-/**
- * OAuth routes would go here:
- *   GET /oauth/:platform/url     → Generate OAuth redirect URL
- *   GET /oauth/:platform/callback → Handle OAuth callback
- *
- * For now these are stubs — YouTube OAuth will be wired up
- * when we have CLIENT_ID and CLIENT_SECRET configured.
- */
