@@ -1,4 +1,9 @@
 import "dotenv/config";
+import { validateEnv } from "./lib/validateEnv";
+
+// Fail fast on missing critical env vars
+validateEnv();
+
 import express from "express";
 import cors from "cors";
 import session from "express-session";
