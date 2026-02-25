@@ -80,7 +80,13 @@ submissionRouter.get("/mine", requireAuth, async (req: Request, res: Response) =
     orderBy: { createdAt: "desc" },
   });
 
-  res.json(submissions);
+  res.json(submissions.map((s) => ({
+    ...s,
+    verification: s.verification ? {
+      ...s.verification,
+      payoutAmount: s.verification.payoutAmount.toString(),
+    } : null,
+  })));
 });
 
 /** GET /submissions/:id — Submission status */
@@ -95,7 +101,13 @@ submissionRouter.get("/:id", async (req: Request<{ id: string }>, res: Response)
     return;
   }
 
-  res.json(submission);
+  res.json({
+    ...submission,
+    verification: submission.verification ? {
+      ...submission.verification,
+      payoutAmount: submission.verification.payoutAmount.toString(),
+    } : null,
+  });
 });
 
 function extractVideoId(platform: string, url: string): string | null {
